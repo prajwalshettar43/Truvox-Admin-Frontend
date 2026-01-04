@@ -1,11 +1,102 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Vote, ShieldCheck, Users, Activity, Lock, Globe } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Vote, ShieldCheck, Users, Activity, Globe, AlertTriangle, Terminal, XCircle, ChevronRight } from 'lucide-react';
 import HolographicSphere from './HolographicSphere';
 import ParticleNetwork from './ParticleNetwork';
 import Logo from '../common/Logo';
 
+// --- NEW COMPONENT: Static Terminal Warning ---
+const SystemLogTerminal = () => {
+  const [logs, setLogs] = useState([]);
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        // Replace with your actual API URL
+        const response = await fetch('http://localhost:8000/logs');
+        const data = await response.json();
+        setLogs(data);
+      } catch (error) {
+        console.error("Failed to fetch system logs");
+      }
+    };
+
+    fetchLogs();
+    // Poll every 5 seconds to check for new warnings
+    const interval = setInterval(fetchLogs, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!logs || logs.length === 0 || !isVisible) return null;
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: -20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="w-full mb-12 relative group"
+    >
+      {/* Glowing Backdrop */}
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600 to-orange-600 rounded-xl opacity-20 group-hover:opacity-40 blur transition duration-1000"></div>
+      
+      {/* Main Terminal Box */}
+      <div className="relative w-full rounded-xl bg-slate-950/90 border border-red-500/30 backdrop-blur-xl overflow-hidden shadow-[0_0_40px_rgba(220,38,38,0.15)]">
+        
+        {/* Terminal Header */}
+        <div className="flex items-center justify-between px-4 py-2 bg-red-950/50 border-b border-red-500/20">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <AlertTriangle className="w-5 h-5 text-red-500" />
+              <span className="absolute inset-0 animate-ping opacity-50 rounded-full bg-red-500"></span>
+            </div>
+            <span className="text-red-400 font-mono text-sm font-bold tracking-widest uppercase">
+              System Security Alerts ({logs.length})
+            </span>
+          </div>
+          
+          <button 
+            onClick={() => setIsVisible(false)}
+            className="flex items-center gap-2 text-xs font-mono text-red-400/70 hover:text-red-400 transition-colors uppercase tracking-wider"
+          >
+            [ Dismiss ] <XCircle className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Log Content Area */}
+        <div className="p-6 font-mono text-sm relative">
+          {/* Scanline overlay effect */}
+          <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(255,0,0,0.02),rgba(255,0,0,0.06))] z-10 background-size-[100%_2px,3px_100%]" />
+          
+          <div className="space-y-3 max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-red-900 scrollbar-track-transparent">
+            {logs.map((log, idx) => (
+              <motion.div 
+                key={idx}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className="flex items-start gap-3 text-red-200/90 border-l-2 border-red-500/20 pl-3 hover:bg-red-900/10 hover:border-red-500 transition-colors py-1"
+              >
+                <ChevronRight className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                <div className="flex flex-col">
+                  <span className="break-all leading-relaxed font-semibold text-red-100 shadow-red-500/50 drop-shadow-[0_0_3px_rgba(220,38,38,0.5)]">
+                    {log.message}
+                  </span>
+                  <span className="text-[10px] text-red-400/50 mt-1 uppercase tracking-widest">
+                    ID: {Math.random().toString(36).substr(2, 9)} // PRIORITY: HIGH
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// --- MAIN LANDING PAGE ---
 const LandingPage = () => {
   const navigate = useNavigate();
 
@@ -22,15 +113,18 @@ const LandingPage = () => {
 
   return (
     <div className="relative min-h-screen bg-slate-950 text-white overflow-x-hidden font-sans selection:bg-blue-500/30">
-      {/* 1. Mesmerizing Background */}
+      {/* Background */}
       <ParticleNetwork />
-      
-      {/* Decorative Glows */}
       <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none -translate-x-1/2 -translate-y-1/2 mix-blend-screen" />
       <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none translate-x-1/2 translate-y-1/2 mix-blend-screen" />
 
-      {/* 2. Main Hero Section */}
+      {/* 2. Main Content */}
       <div className="relative z-10 container mx-auto px-6 pt-32 pb-20">
+        
+        {/* --- INSERTED HERE: LOG WARNING SYSTEM --- */}
+        {/* This sits above the hero section but inside the container, respecting navbar space */}
+        <SystemLogTerminal />
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           
           {/* Left: Text Content */}
@@ -40,12 +134,8 @@ const LandingPage = () => {
             variants={staggerContainer}
             className="space-y-8 text-center lg:text-left"
           >
-            {/* Animated Logo Badge */}
             <motion.div variants={fadeInUp} className="flex justify-center lg:justify-start items-center gap-4 mb-4">
               <Logo size="medium" animated={true} />
-              {/* <span className="px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 font-semibold text-sm tracking-wider uppercase">
-                Official Voting Portal
-              </span> */}
             </motion.div>
 
             {/* Headline */}
@@ -56,7 +146,6 @@ const LandingPage = () => {
               </span>
             </motion.h1>
 
-            {/* Description */}
             <motion.p variants={fadeInUp} className="text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto lg:mx-0">
               TruVox empowers citizens with a <strong>Blockchain-Secured</strong>, <strong>AI-Verified</strong> voting ecosystem. 
               Experience the transparency of decentralized elections with the security of biometric identity.
@@ -74,7 +163,6 @@ const LandingPage = () => {
                 </span>
               </button>
               
-
               <button 
                 onClick={() => navigate('/view-election')}
                 className="px-8 py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold text-lg border border-white/10 backdrop-blur-md transition-all hover:border-white/20 flex items-center justify-center gap-2"
@@ -110,13 +198,12 @@ const LandingPage = () => {
             transition={{ duration: 1.2, delay: 0.2, type: "spring" }}
             className="h-[600px] w-full flex items-center justify-center relative"
           >
-            {/* Glow behind the sphere */}
             <div className="absolute inset-0 bg-indigo-500/20 blur-[100px] rounded-full" />
             <HolographicSphere />
           </motion.div>
         </div>
 
-        {/* 3. "Live" Ticker */}
+        {/* Ticker and Features Sections remain the same... */}
         <div className="my-24 border-y border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden py-4">
           <div className="flex animate-marquee whitespace-nowrap gap-12 text-gray-300 font-mono text-sm">
              {[...Array(10)].map((_, i) => (
@@ -128,7 +215,6 @@ const LandingPage = () => {
           </div>
         </div>
 
-        {/* 4. Features Section */}
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold mb-4">Why Choose <span className="text-blue-400">TruVox?</span></h2>
@@ -161,7 +247,6 @@ const LandingPage = () => {
   );
 };
 
-// Enhanced Feature Card
 const FeatureCard = ({ icon, title, desc, delay }) => (
   <motion.div 
     initial={{ opacity: 0, y: 20 }}

@@ -294,7 +294,7 @@ export default function MLAMPCards() {
   };
 
   return (
-    <div className="w-full h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+    <div className="w-full h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 ">
       {notification && (
         <div className="fixed top-8 left-1/2 -translate-x-1/2 bg-white px-6 py-3 rounded-full shadow-lg z-50">
           <p className="text-sm font-medium text-gray-700">{notification}</p>

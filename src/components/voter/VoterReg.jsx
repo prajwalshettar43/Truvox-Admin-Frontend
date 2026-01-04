@@ -165,8 +165,7 @@ function Voter() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
+  const handleFinalSubmit = async (e) => {
     
     if (!validateFinalForm()) {
       setCurrentStep(1); // Go back to first step if validation fails
@@ -269,14 +268,14 @@ function Voter() {
   const securityLevel = getSecurityLevel();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 ">
       {/* Animated Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none ">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="max-w-4xl mx-auto relative z-10">
+      <div className="max-w-4xl mx-auto relative z-10 mt-25">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
@@ -333,7 +332,7 @@ function Voter() {
                 </div>
               )}
 
-              <form onSubmit={onSubmit} className="space-y-6">
+              <form className="space-y-6">
                 {/* Step 1: Personal Details */}
                 {currentStep === 1 && (
                   <div className="space-y-6">
@@ -617,7 +616,10 @@ function Voter() {
                     </button>
                   ) : (
                     <button
-                      type="submit"
+                      // FIX: Changed type from "submit" to "button" to prevent auto-submission
+                      type="button"
+                      // FIX: Call the submission logic directly via onClick
+                      onClick={handleFinalSubmit}
                       disabled={isSubmitting}
                       className="px-8 py-3 rounded-xl text-white font-semibold bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-all shadow-lg flex items-center space-x-2"
                     >

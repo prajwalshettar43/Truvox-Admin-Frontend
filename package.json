@@ -18,6 +18,8 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.24",
     "gsap": "^3.13.0",
+    "html-to-image": "^1.11.13",
+    "jspdf": "^3.0.4",
     "lucide-react": "^0.544.0",
     "maath": "^0.10.8",
     "react": "^19.1.1",

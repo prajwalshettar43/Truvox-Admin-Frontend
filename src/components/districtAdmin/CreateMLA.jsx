@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { karnatakaConstituencies } from "../../data/constituencies";
+import { ChevronDown, Calendar, MapPin, User, Flag, AlertCircle, CheckCircle, Loader2 } from "lucide-react"; // Optional: added icons for better UI, remove if you don't have lucide-react installed and use simple text/spans
 
 const CreateMLA = () => {
   const navigate = useNavigate();
@@ -17,9 +18,6 @@ const CreateMLA = () => {
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
 
-  // -------------------------------------
-  // unwrap ASMX response (robust unwrapping)
-  // -------------------------------------
   const unwrapResponse = (value) => {
     let parsed = value;
     let safety = 0;
@@ -193,9 +191,10 @@ const CreateMLA = () => {
       symbol: String(c.symbol ?? ""),
       candidate_photo_base64: String(c._photo_base64_raw ?? ""),
     }));
-
-    const consisName = karnatakaConstituencies[constituency].constituency;
-
+    const selectedConstituencyObj = karnatakaConstituencies.find(
+      (c) => String(c.id) === String(constituency)
+    );
+    const consisName = selectedConstituencyObj ? selectedConstituencyObj.constituency : "";
     const payload = {
       election_type: String(electionType ?? ""),
       state: String(stateName ?? ""),
@@ -205,7 +204,7 @@ const CreateMLA = () => {
       candidates: candidatesPayload,
     };
 
-    console.log("CreateElection payload:", consisName);
+    console.log("CreateElection payload:", payload);
 
     try {
       const resp = await axios.post("http://localhost:8000/election/create", payload, {
@@ -215,7 +214,6 @@ const CreateMLA = () => {
 
       if (resp.status === 200 || resp.status === 201) {
         setMessage("Election created successfully!");
-        navigate("/district-dashboard");
         return;
       }
 
@@ -255,124 +253,206 @@ const CreateMLA = () => {
   // UI
   // -------------------------------------
   return (
-    <div className="max-w-3xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow">
-      <h2 className="text-2xl font-semibold mb-6 text-center">Create MLA Election</h2>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* TOP: Constituency */}
-        <div>
-          <label className="block mb-1 font-medium">Constituency</label>
-          <select
-            className="w-full border px-3 py-2 rounded-lg"
-            value={constituency}
-            onChange={(e) => onConstituencyChange(e.target.value)}
-            required
-          >
-            <option value="">-- Select Constituency --</option>
-            {karnatakaConstituencies.map((c) => (
-              <option key={c.id} value={String(c.id)}>
-                {c.id} - {c.constituency}
-              </option>
-            ))}
-          </select>
+    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 font-sans pt-25">
+      <div className="w-full max-w-4xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl overflow-hidden flex flex-col">
+        
+        {/* Header Section */}
+        <div className="p-8 border-b border-white/10 bg-black/20">
+          <h2 className="text-3xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-purple-200 tracking-wide">
+            Create MLA Election
+          </h2>
+          <p className="text-center text-slate-400 mt-2 text-sm">
+            Configure election details and review candidates
+          </p>
         </div>
 
-        {/* Election Type (read-only) */}
-        <div>
-          <label className="block mb-1 font-medium">Election Type</label>
-          <input
-            type="text"
-            className="w-full border px-3 py-2 rounded-lg bg-gray-100"
-            value={electionType}
-            readOnly
-          />
-        </div>
-
-        {/* State (disabled) */}
-        <div>
-          <label className="block mb-1 font-medium">State</label>
-          <input
-            className="w-full border px-3 py-2 rounded-lg"
-            value={stateName}
-            required
-            disabled
-          />
-        </div>
-
-        {/* District (auto-filled & disabled) */}
-        <div>
-          <label className="block mb-1 font-medium">District</label>
-          <input
-            className="w-full border px-3 py-2 rounded-lg"
-            value={district}
-            placeholder="Hubballi"
-            required
-            disabled
-          />
-        </div>
-
-        {/* Election Date */}
-        <div>
-          <label className="block mb-1 font-medium">Election Date</label>
-          <input
-            type="date"
-            className="w-full border px-3 py-2 rounded-lg"
-            value={electionDate}
-            onChange={(e) => setElectionDate(e.target.value)}
-            required
-          />
-        </div>
-
-        {/* Candidates listing */}
-        <div className="mt-4">
-          <h3 className="font-semibold mb-2">Candidates</h3>
-
-          {loading && <div className="text-sm text-gray-500 mb-2">Loading candidates…</div>}
-
-          {candidates.length === 0 && !loading && (
-            <div className="text-sm text-gray-500 mb-2">No candidates loaded yet.</div>
-          )}
-
-          {candidates.map((c, i) => (
-            <div key={i} className="border p-3 mb-3 rounded-lg space-y-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-medium">{c.name}</div>
-                  <div className="text-xs text-gray-600">{c.party}</div>
-                </div>
-
-                {/* Photo (if present and normalized) */}
-                {c.photo_url ? (
-                  <img
-                    src={c.photo_url}
-                    alt={`${c.name} photo`}
-                    style={{ width: 120, height: "auto", borderRadius: 6 }}
-                  />
-                ) : (
-                  <div style={{ width: 120, height: 80, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 6, border: "1px solid #eee", background: "#fafafa", fontSize: 12 }}>
-                    No photo
+        <div className="p-8">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            
+            {/* Form Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Constituency - Spans full width on mobile, half on desktop */}
+              <div className="col-span-1 md:col-span-2">
+                <label className="block mb-2 text-xs font-bold uppercase tracking-wider text-purple-300">
+                  Constituency
+                </label>
+                <div className="relative">
+                  <select
+                    className="w-full bg-slate-950/50 border border-slate-700 text-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none appearance-none transition-all"
+                    value={constituency}
+                    onChange={(e) => onConstituencyChange(e.target.value)}
+                    required
+                  >
+                    <option value="" className="bg-slate-900">-- Select Constituency --</option>
+                    {karnatakaConstituencies.map((c) => (
+                      <option key={c.id} value={String(c.id)} className="bg-slate-900">
+                        {c.id} - {c.constituency}
+                      </option>
+                    ))}
+                  </select>
+                  {/* Custom Arrow Icon */}
+                  <div className="absolute right-4 top-3.5 pointer-events-none text-slate-400">
+                    <ChevronDown size={20} />
                   </div>
-                )}
+                </div>
               </div>
 
-              <div className="text-xs text-gray-800 mt-1">
-                Symbol: <span className="font-semibold">{c.symbol}</span>
+              {/* Election Type */}
+              <div>
+                <label className="block mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Election Type
+                </label>
+                <input
+                  type="text"
+                  className="w-full bg-slate-800/40 border border-slate-700/50 text-slate-400 rounded-xl px-4 py-3 cursor-not-allowed"
+                  value={electionType}
+                  readOnly
+                />
+              </div>
+
+              {/* Election Date */}
+              <div>
+                <label className="block mb-2 text-xs font-bold uppercase tracking-wider text-purple-300">
+                  Election Date
+                </label>
+                <div className="relative">
+                  <input
+                    type="date"
+                    className="w-full bg-slate-950/50 border border-slate-700 text-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                    value={electionDate}
+                    onChange={(e) => setElectionDate(e.target.value)}
+                    required
+                  />
+                  {/* Calendar Icon placeholder if native picker doesn't show one effectively */}
+                </div>
+              </div>
+
+              {/* State */}
+              <div>
+                <label className="block mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                  State
+                </label>
+                <div className="relative">
+                  <input
+                    className="w-full bg-slate-800/40 border border-slate-700/50 text-slate-400 rounded-xl pl-10 pr-4 py-3 cursor-not-allowed"
+                    value={stateName}
+                    required
+                    disabled
+                  />
+                  <MapPin className="absolute left-3 top-3.5 text-slate-600" size={18} />
+                </div>
+              </div>
+
+              {/* District */}
+              <div>
+                <label className="block mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                  District
+                </label>
+                <div className="relative">
+                  <input
+                    className="w-full bg-slate-800/40 border border-slate-700/50 text-slate-400 rounded-xl pl-10 pr-4 py-3 cursor-not-allowed"
+                    value={district || "Auto-filled"}
+                    required
+                    disabled
+                  />
+                  <MapPin className="absolute left-3 top-3.5 text-slate-600" size={18} />
+                </div>
               </div>
             </div>
-          ))}
+
+            {/* Candidates Section */}
+            <div className="mt-8 pt-6 border-t border-white/10">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <User size={20} className="text-purple-400"/> Candidates List
+                </h3>
+                <span className="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded-full">
+                  Count: {candidates.length}
+                </span>
+              </div>
+
+              {loading && (
+                <div className="flex flex-col items-center justify-center py-12 text-purple-300">
+                  <Loader2 className="animate-spin mb-3" size={32} />
+                  <p className="text-sm">Fetching candidate data...</p>
+                </div>
+              )}
+
+              {candidates.length === 0 && !loading && (
+                <div className="text-center py-12 bg-black/20 rounded-2xl border border-dashed border-slate-700">
+                  <p className="text-slate-500 text-sm">Select a constituency to load candidates.</p>
+                </div>
+              )}
+
+              {/* Candidate Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                {candidates.map((c, i) => (
+                  <div key={i} className="bg-slate-800/60 hover:bg-slate-800/90 border border-slate-700/50 rounded-xl p-4 flex gap-4 items-center transition-all duration-200 hover:scale-[1.01] hover:shadow-lg group">
+                    {/* Photo */}
+                    <div className="flex-shrink-0">
+                      {c.photo_url ? (
+                        <img
+                          src={c.photo_url}
+                          alt={c.name}
+                          className="w-16 h-16 object-cover rounded-lg border-2 border-purple-500/30 group-hover:border-purple-400 shadow-md"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-slate-700 rounded-lg flex items-center justify-center border border-slate-600 text-slate-500">
+                          <User size={24} />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-white truncate">{c.name}</p>
+                      <p className="text-xs text-purple-300 truncate font-medium">{c.party}</p>
+                      <div className="flex items-center gap-1 mt-1 text-xs text-slate-400">
+                        <Flag size={12} />
+                        <span className="truncate">Symbol: <span className="text-slate-200">{c.symbol}</span></span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Messages */}
+            {message && (
+              <div className="bg-green-500/20 border border-green-500/50 text-green-200 p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2">
+                <CheckCircle size={20} />
+                <span>{message}</span>
+              </div>
+            )}
+            {error && (
+              <div className="bg-red-500/20 border border-red-500/50 text-red-200 p-4 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-bottom-2">
+                <AlertCircle size={20} className="mt-0.5 shrink-0" />
+                <span className="whitespace-pre-wrap text-sm">{error}</span>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full py-4 rounded-xl font-bold text-white shadow-lg transition-all transform active:scale-[0.98]
+                ${loading 
+                  ? "bg-slate-700 cursor-not-allowed" 
+                  : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 hover:shadow-purple-500/25"
+                }`}
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="animate-spin" size={20} /> Processing...
+                </span>
+              ) : (
+                "Create Election"
+              )}
+            </button>
+          </form>
         </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 mt-2"
-        >
-          {loading ? "Creating..." : "Create Election"}
-        </button>
-      </form>
-
-      {message && <p className="text-green-600 mt-4 text-center">{message}</p>}
-      {error && <p className="text-red-600 mt-4 text-center whitespace-pre-wrap">{error}</p>}
+      </div>
     </div>
   );
 };
