@@ -19,7 +19,7 @@ const AllElections = () => {
   useEffect(() => {
     const fetchElections = async () => {
       try {
-        const res = await fetch("http://localhost:8000/election/all");
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/election/all`);
         const data = await res.json();
         setElections(data.elections || []);
       } catch (err) {
@@ -35,7 +35,7 @@ const AllElections = () => {
   const fetchResults = async (electionId) => {
     setLoadingResult(true);
     try {
-      const res = await fetch(`http://localhost:8000/api/vote/results/${electionId}`);
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/vote/results/${electionId}`);
       const data = await res.json();
       setResults(data.results || []);
       setResultElection(elections.find((e) => e._id === electionId));
@@ -52,7 +52,7 @@ const AllElections = () => {
     setVerifyData(null);
     setVerifyElection(elections.find((e) => e._id === electionId));
     try {
-      const res = await fetch("http://localhost:8000/api/vote/verify-election-integrity", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/vote/verify-election-integrity`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ election_id: electionId })

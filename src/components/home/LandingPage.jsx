@@ -15,7 +15,7 @@ const SystemLogTerminal = () => {
     const fetchLogs = async () => {
       try {
         // Replace with your actual API URL
-        const response = await fetch('http://localhost:8000/logs');
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/logs`);
         const data = await response.json();
         setLogs(data);
       } catch (error) {

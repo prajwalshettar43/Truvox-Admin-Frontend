@@ -207,7 +207,7 @@ const CreateMLA = () => {
     console.log("CreateElection payload:", payload);
 
     try {
-      const resp = await axios.post("http://localhost:8000/election/create", payload, {
+      const resp = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/election/create`, payload, {
         headers: { "Content-Type": "application/json" },
         validateStatus: (status) => status < 500,
       });

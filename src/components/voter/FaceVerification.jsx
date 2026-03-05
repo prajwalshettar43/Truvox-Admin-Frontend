@@ -140,7 +140,7 @@ const FaceVerification = () => {
       formData.append('epic', userId);
       formData.append('photo', selectedImage, 'verification_image.jpg');
 
-      const response = await fetch('/api/verify', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/verify`, {
         method: 'POST',
         body: formData,
       });

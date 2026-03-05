@@ -26,7 +26,7 @@ import {
   Zap
 } from "lucide-react";
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}`;
 // TODO: Replace with your actual Groq API Key or use process.env.REACT_APP_GROQ_API_KEY
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY; 
 

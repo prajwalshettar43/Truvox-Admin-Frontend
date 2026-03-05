@@ -34,7 +34,7 @@ function DistrictAdminForm() {
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     try {
-      const response = await fetch('http://localhost:8000/district-admin', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/district-admin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

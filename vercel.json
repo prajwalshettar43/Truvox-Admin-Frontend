@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/kgis/:path*",
+      "destination": "https://kgis.ksrsac.in/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
